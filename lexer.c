@@ -35,6 +35,8 @@ Token * tokenize(const char *input){
 			input++;
 			if(*input == '@'){
 				tail = add_Token(tail,TOKEN_UNQUOTE_SPLICE,"~@");
+				//跳过@符号
+				input++;
 			}
 			else{
 				tail = add_Token(tail,TOKEN_UNQUOTE,"~");
