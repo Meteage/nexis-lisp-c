@@ -109,4 +109,6 @@ void test_tokenize(){
 	const char *input = "[+ 1 2 3] ;这是一个注释\n[1 2 3] \"Hello, world!\" ~@foo &bar 'qux 1.23 0.45";
 	Token * tokens = tokenize(input);
 	printTokenSteam(tokens);
+	printf("test_tokenize passed!\n");
+
 }

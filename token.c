@@ -51,5 +51,6 @@ void test_tokenStream(){
 	printTokenSteam(h);
 	consume_token(h,TOKEN_BRACKET);
 	printTokenSteam(h);
-
+	printf("test_tokenStream passed!\n");
+	
 }
