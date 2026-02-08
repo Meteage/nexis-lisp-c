@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 Token * tokenize(const char *input){
 	Token * head = initTokenSteam();
