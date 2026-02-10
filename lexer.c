@@ -25,30 +25,30 @@ Token * tokenize(const char *input){
 			}
 		break;
 		case '&':
-			tail = add_token(tail,TOKEN_AMPERSAND,"&");
+			tail = append_token(tail,TOKEN_AMPERSAND,"&");
 			input++;
 			break;
 		case '\'':
-			tail = add_token(tail,TOKEN_QUOTE,"\'");
+			tail = append_token(tail,TOKEN_QUOTE,"\'");
 			input++;
 			break;
 		case '~':
 			input++;
 			if(*input == '@'){
-				tail = add_token(tail,TOKEN_UNQUOTE_SPLICE,"~@");
+				tail = append_token(tail,TOKEN_UNQUOTE_SPLICE,"~@");
 				//跳过@符号
 				input++;
 			}
 			else{
-				tail = add_token(tail,TOKEN_UNQUOTE,"~");
+				tail = append_token(tail,TOKEN_UNQUOTE,"~");
 			}
 		break;
 		case '[':
-			tail = add_token(tail,TOKEN_BRACKET,"[");
+			tail = append_token(tail,TOKEN_BRACKET,"[");
 			input++;
 			break;
 		case ']':
-			tail = add_token(tail,TOKEN_RBACKET,"]");
+			tail = append_token(tail,TOKEN_RBACKET,"]");
 			input++;
 			break;
 		case '.':
@@ -64,7 +64,7 @@ Token * tokenize(const char *input){
 				i++;
 			}
 			num[i] = '\0';
-			tail = add_token(tail,TOKEN_NUMBER,num);
+			tail = append_token(tail,TOKEN_NUMBER,num);
 		}
 		break;
 		case '\"':
@@ -81,7 +81,7 @@ Token * tokenize(const char *input){
 			}
 			str[i] = '\0';
 			input++;
-			tail = add_token(tail,TOKEN_STRING,str);
+			tail = append_token(tail,TOKEN_STRING,str);
 		}
 		break;
 		
@@ -90,14 +90,14 @@ Token * tokenize(const char *input){
 			//提取符号
 			char * sym = (char*)malloc(sizeof(char)*MAX_STRING_LENGTH);
 			int i = 0;
-			while (!(*input == '\t'||*input == '\n'||*input == ' '))
+			while (!(*input == '\t'||*input == '\n'||*input == ' '||*input=='['||*input==']'||*input=='\0'))
 			{
 				sym[i] = *input;
 				input++;
 				i++;
 			}
 			sym[i] = '\0';
-			tail = add_token(tail,TOKEN_SYMBOL,sym);
+			tail = append_token(tail,TOKEN_SYMBOL,sym);
 		}
 		break;
 		}
@@ -107,7 +107,7 @@ Token * tokenize(const char *input){
 
 //debug 测试tokenize函数
 void test_tokenize(){
-	const char *input = "[+ 1 2 3] ;这是一个注释\n[1 2 3] \"Hello, world!\" ~@foo &bar 'qux 1.23 0.45";
+	const char *input = "[+ 0 '[1 2] [3 4] ~d ~@sddf &djdh]";
 	Token * tokens = tokenize(input);
 	print_token_stream(tokens);
 	printf("test_tokenize passed!\n");

@@ -23,7 +23,9 @@ typedef struct token {
 
 // 创建和管理
 Token* init_token_stream(void);                      
-Token* add_token(Token* head, TokenType type, char* data);  
+Token* append_token(Token* head, TokenType type, char* data);  
+
+TokenType peek_token(const Token* head);
 
 // 消费/处理
 int consume_token(Token* head, TokenType type);       

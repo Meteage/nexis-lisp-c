@@ -16,7 +16,9 @@ typedef struct ASTNode
 ASTNode* create_atom_node(const char* value);
 ASTNode* create_list_node(ASTNode* children);
 ASTNode* append_sibling(ASTNode* tail, ASTNode* node);
+ASTNode* append_sibling_to_list(ASTNode* head, ASTNode* node);
 void free_ast(ASTNode* node);
+void print_siblings(ASTNode* head);
 void print_ast_tree(ASTNode* node, int depth, int is_last);
 
 #endif

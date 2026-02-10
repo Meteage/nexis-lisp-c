@@ -13,7 +13,7 @@ Token * init_token_stream(){
 }
 
 //尾插法
-Token * add_token(Token*head,TokenType type,char* data){
+Token * append_token(Token*head,TokenType type,char* data){
 	Token * tail = (Token *)malloc(sizeof(Token));
 	if(tail == NULL) return NULL;
 	tail->type = type;
@@ -21,6 +21,11 @@ Token * add_token(Token*head,TokenType type,char* data){
 	tail->next = NULL;
 	head->next = tail;
 	return tail;
+}
+
+TokenType peek_token(const Token* head){
+	if(head->next == NULL) return -1;
+	return head->next->type;
 }
 
 //消耗token
@@ -44,12 +49,12 @@ void print_token_stream(const Token* head){
 void test_token_stream(){
 	Token * h = init_token_stream();
 	Token *t = h;
-	t = add_token(t,TOKEN_BRACKET,"[");
-	t = add_token(t,TOKEN_SYMBOL,"+");
-	t = add_token(t,TOKEN_NUMBER,"1");
-	t = add_token(t,TOKEN_NUMBER,"2");
-	t = add_token(t,TOKEN_NUMBER,"3");
-	t = add_token(t,TOKEN_RBACKET,"]");
+	t = append_token(t,TOKEN_BRACKET,"[");
+	t = append_token(t,TOKEN_SYMBOL,"+");
+	t = append_token(t,TOKEN_NUMBER,"1");
+	t = append_token(t,TOKEN_NUMBER,"2");
+	t = append_token(t,TOKEN_NUMBER,"3");
+	t = append_token(t,TOKEN_RBACKET,"]");
 	print_token_stream(h);
 	consume_token(h,TOKEN_BRACKET);
 	print_token_stream(h);
