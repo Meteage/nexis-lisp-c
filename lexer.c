@@ -3,7 +3,7 @@
 #include "stdio.h"
 
 Token * tokenize(const char *input){
-	Token * head = initTokenSteam();
+	Token * head = init_token_stream();
 	Token * tail = head;
 	while (*input != '\0')
 	{
@@ -25,30 +25,30 @@ Token * tokenize(const char *input){
 			}
 		break;
 		case '&':
-			tail = add_Token(tail,TOKEN_AMPERSAND,"\'");
+			tail = add_token(tail,TOKEN_AMPERSAND,"&");
 			input++;
 			break;
 		case '\'':
-			tail = add_Token(tail,TOKEN_QUOTE,"\'");
+			tail = add_token(tail,TOKEN_QUOTE,"\'");
 			input++;
 			break;
 		case '~':
 			input++;
 			if(*input == '@'){
-				tail = add_Token(tail,TOKEN_UNQUOTE_SPLICE,"~@");
+				tail = add_token(tail,TOKEN_UNQUOTE_SPLICE,"~@");
 				//跳过@符号
 				input++;
 			}
 			else{
-				tail = add_Token(tail,TOKEN_UNQUOTE,"~");
+				tail = add_token(tail,TOKEN_UNQUOTE,"~");
 			}
 		break;
 		case '[':
-			tail = add_Token(tail,TOKEN_BRACKET,"[");
+			tail = add_token(tail,TOKEN_BRACKET,"[");
 			input++;
 			break;
 		case ']':
-			tail = add_Token(tail,TOKEN_RBACKET,"]");
+			tail = add_token(tail,TOKEN_RBACKET,"]");
 			input++;
 			break;
 		case '.':
@@ -64,7 +64,7 @@ Token * tokenize(const char *input){
 				i++;
 			}
 			num[i] = '\0';
-			tail = add_Token(tail,TOKEN_NUMBER,num);
+			tail = add_token(tail,TOKEN_NUMBER,num);
 		}
 		break;
 		case '\"':
@@ -81,7 +81,7 @@ Token * tokenize(const char *input){
 			}
 			str[i] = '\0';
 			input++;
-			tail = add_Token(tail,TOKEN_STRING,str);
+			tail = add_token(tail,TOKEN_STRING,str);
 		}
 		break;
 		
@@ -97,7 +97,7 @@ Token * tokenize(const char *input){
 				i++;
 			}
 			sym[i] = '\0';
-			tail = add_Token(tail,TOKEN_SYMBOL,sym);
+			tail = add_token(tail,TOKEN_SYMBOL,sym);
 		}
 		break;
 		}
@@ -109,7 +109,7 @@ Token * tokenize(const char *input){
 void test_tokenize(){
 	const char *input = "[+ 1 2 3] ;这是一个注释\n[1 2 3] \"Hello, world!\" ~@foo &bar 'qux 1.23 0.45";
 	Token * tokens = tokenize(input);
-	printTokenSteam(tokens);
+	print_token_stream(tokens);
 	printf("test_tokenize passed!\n");
 
 }

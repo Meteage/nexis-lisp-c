@@ -21,10 +21,17 @@ typedef struct token {
 	struct token *next;
 } Token;
 
-Token * initTokenSteam();
-Token * add_Token(Token*List,TokenType type,char *data);
-int consume_token(Token *List,TokenType type);
-void printTokenSteam(Token * Head);
-void test_tokenStream();
+// 创建和管理
+Token* init_token_stream(void);                      
+Token* add_token(Token* head, TokenType type, char* data);  
+
+// 消费/处理
+int consume_token(Token* head, TokenType type);       
+
+// 输出/调试
+void print_token_stream(const Token* head);          
+
+// 测试
+void test_token_stream(void);                         
 
 #endif
