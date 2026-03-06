@@ -88,15 +88,15 @@ ASTNode * parse(Token *token_stream) {
 
 void test_parser() {
 	printf("test_parser passed!\n");
-	char* code = "[+ 0 '[1 2] [3 4] ~d ~@sddf &djdh]";
+	char* code = "[+ 0 '[1 2] [3 4] ~d ~@sddf &djdh \"Hello World!\"]";
 	Token* tokens = tokenize(code);
 	print_token_stream(tokens);
 	ASTNode* ast = parse(tokens);
 	print_siblings(ast);
 	print_ast_tree(ast,0,0);
 }
-
+/*
 int main(){
 	test_parser();
 	return 0;
-}
+}*/

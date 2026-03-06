@@ -81,6 +81,8 @@ Token * tokenize(const char *input){
 			}
 			str[i] = '\0';
 			input++;
+			//特殊处理 字符串也用quote引号包裹
+			tail = append_token(tail,TOKEN_QUOTE,"\'");
 			tail = append_token(tail,TOKEN_STRING,str);
 		}
 		break;
