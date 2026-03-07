@@ -8,9 +8,6 @@
 // 全局环境（外部可访问）
 extern HashTable* global_env;
 
-// 判断字符串是否为数字
-int is_number(const char* str);
-
 // 初始化全局环境
 void init_global_env();
 

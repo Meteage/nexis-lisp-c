@@ -27,11 +27,20 @@ ASTNode* parse_expression(Token* token_stream){
 	while (peek_token(token_stream) != -1)
 	{
 		switch (peek_token(token_stream))
-		{
+		{	
 			case TOKEN_STRING:
+				ast = create_atom_node(token_stream->next->data);
+				set_atom_type(ast,ATOM_STRING);
+				consume_token(token_stream,peek_token(token_stream));
+				return ast;
 			case TOKEN_SYMBOL:
+				ast = create_atom_node(token_stream->next->data);
+				set_atom_type(ast,ATOM_SYMBOL);
+				consume_token(token_stream,peek_token(token_stream));
+				return ast;
 			case TOKEN_NUMBER:
 				ast = create_atom_node(token_stream->next->data);
+				set_atom_type(ast,ATOM_NUMBER);
 				consume_token(token_stream,peek_token(token_stream));
 				return ast;
 
