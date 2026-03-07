@@ -5,19 +5,19 @@
 #include "astnode.h"
 #include "hashtable.h"
 
-// 全局环境（外部可访问）
-extern HashTable* global_env;
+#include "env.h"  // 新增
+
+// 全局环境（现在用 Env 结构）
+extern Env* global_env;
 
 // 初始化全局环境
 void init_global_env();
 
 // 主求值函数
-ASTNode* Eval(ASTNode* ast, HashTable* env);
+ASTNode* Eval(ASTNode* ast, Env* env);
 
 // 辅助函数
 int count_args(ASTNode* args);
 
-// 测试函数
-void test_eval();
 
 #endif

@@ -24,6 +24,7 @@ typedef struct ASTNode
 
 ASTNode* create_atom_node(const char* value);
 ASTNode* create_list_node(ASTNode* children);
+ASTNode* copy_ast_node(ASTNode* node);
 ASTNode* append_sibling(ASTNode* tail, ASTNode* node);
 ASTNode* append_sibling_to_list(ASTNode* head, ASTNode* node);
 void set_atom_type(ASTNode* node, AtomType type);

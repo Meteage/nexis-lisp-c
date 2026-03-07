@@ -15,8 +15,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 # 源文件列表
 set(SOURCES
+    src/test.c           # 新增
     src/main.c
     src/repl.c           # REPL 模块
+    src/env.c
     src/evaluator.c
     src/builtins.c
     src/hashtable.c
@@ -27,14 +29,16 @@ set(SOURCES
 )
 
 # 头文件列表
-set(HEADERS
+set(
+    inc/test.h           # 新增
+    inc/repl.h           # 新增
+    inc/env.h
     inc/evaluator.h
     inc/builtins.h
     inc/hashtable.h
     inc/parser.h
     inc/lexer.h
     inc/astnode.h
-    inc/repl.h           # 新增
     inc/token.h
 )
 

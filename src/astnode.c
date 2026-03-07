@@ -73,6 +73,39 @@ ASTNode* append_sibling_to_list(ASTNode* head, ASTNode* node) {
     return head;
 }
 
+// 复制 ASTNode（深拷贝）
+ASTNode* copy_ast_node(ASTNode* node) {
+    if (node == NULL) return NULL;
+    
+    if (node->type == ATOM) {
+        ASTNode* copy = create_atom_node(node->atom.value);
+        set_atom_type(copy, node->atom.type);
+        return copy;
+    } else if (node->type == LIST) {
+        // 复制列表（需要递归复制每个元素）
+        ASTNode* copy_list = NULL;
+        ASTNode* last = NULL;
+        ASTNode* current = node->list;
+        
+        while (current != NULL) {
+            ASTNode* elem_copy = copy_ast_node(current);
+            if (copy_list == NULL) {
+                copy_list = elem_copy;
+                last = elem_copy;
+            } else {
+                last->next = elem_copy;
+                last = elem_copy;
+            }
+            current = current->next;
+        }
+        
+        return create_list_node(copy_list);
+    }
+    
+    return NULL;
+}
+
+
 void free_ast(ASTNode* node) {
     if (!node) return;
     

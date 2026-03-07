@@ -6,6 +6,7 @@
 #include "parser.h"
 #include "evaluator.h"
 #include "repl.h"
+#include "test.h"
 
 void print_usage() {
     printf("Usage: nexis-lisp [options]\n");
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
     
     // 释放环境
     if (global_env != NULL) {
-        free_hash_table(global_env);
+        free_hash_table(global_env->bindings);
         global_env = NULL;
     }
     

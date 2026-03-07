@@ -21,14 +21,14 @@ ASTNode* make_symbol(const char* s) {
 }
 
 // 加法操作
-ASTNode* op_add(ASTNode* args) {
+ASTNode* op_add(ASTNode* args,Env* env) {
     if (args == NULL) return make_number(0);
     
     int sum = 0;
     ASTNode* current = args;
     
     while (current != NULL) {
-        ASTNode* evaluated = Eval(current, global_env);
+        ASTNode* evaluated = Eval(current, env);
         if (evaluated != NULL && evaluated->type == ATOM && 
             evaluated->atom.type == ATOM_NUMBER) {
             sum += atoi(evaluated->atom.value);
@@ -40,10 +40,10 @@ ASTNode* op_add(ASTNode* args) {
 }
 
 // 减法操作
-ASTNode* op_sub(ASTNode* args) {
+ASTNode* op_sub(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(0);
     
-    ASTNode* first_eval = Eval(args, global_env);
+    ASTNode* first_eval = Eval(args, env);
     if (first_eval == NULL || first_eval->type != ATOM || 
         first_eval->atom.type != ATOM_NUMBER) {
         return make_number(0);
@@ -53,7 +53,7 @@ ASTNode* op_sub(ASTNode* args) {
     ASTNode* current = args->next;
     
     while (current != NULL) {
-        ASTNode* evaluated = Eval(current, global_env);
+        ASTNode* evaluated = Eval(current, env);
         if (evaluated != NULL && evaluated->type == ATOM &&
             evaluated->atom.type == ATOM_NUMBER) {
             result -= atoi(evaluated->atom.value);
@@ -65,14 +65,14 @@ ASTNode* op_sub(ASTNode* args) {
 }
 
 // 乘法操作
-ASTNode* op_mul(ASTNode* args) {
+ASTNode* op_mul(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(1);
     
     int result = 1;
     ASTNode* current = args;
     
     while (current != NULL) {
-        ASTNode* evaluated = Eval(current, global_env);
+        ASTNode* evaluated = Eval(current, env);
         if (evaluated != NULL && evaluated->type == ATOM &&
             evaluated->atom.type == ATOM_NUMBER) {
             result *= atoi(evaluated->atom.value);
@@ -84,10 +84,10 @@ ASTNode* op_mul(ASTNode* args) {
 }
 
 // 除法操作
-ASTNode* op_div(ASTNode* args) {
+ASTNode* op_div(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(0);
     
-    ASTNode* first_eval = Eval(args, global_env);
+    ASTNode* first_eval = Eval(args, env);
     if (first_eval == NULL || first_eval->type != ATOM ||
         first_eval->atom.type != ATOM_NUMBER) {
         return make_number(0);
@@ -97,7 +97,7 @@ ASTNode* op_div(ASTNode* args) {
     ASTNode* current = args->next;
     
     while (current != NULL) {
-        ASTNode* evaluated = Eval(current, global_env);
+        ASTNode* evaluated = Eval(current, env);
         if (evaluated != NULL && evaluated->type == ATOM &&
             evaluated->atom.type == ATOM_NUMBER) {
             int divisor = atoi(evaluated->atom.value);
@@ -112,13 +112,13 @@ ASTNode* op_div(ASTNode* args) {
 }
 
 // quote操作 - 特殊形式，不对参数求值
-ASTNode* op_quote(ASTNode* args) {
+ASTNode* op_quote(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     return args;  // 返回第一个参数（不求值）
 }
 
 // car操作 - 返回列表的第一个元素
-ASTNode* op_car(ASTNode* args) {
+ASTNode* op_car(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     
     ASTNode* list = Eval(args, global_env);
@@ -133,10 +133,10 @@ ASTNode* op_car(ASTNode* args) {
 }
 
 // cdr操作 - 返回列表的剩余部分
-ASTNode* op_cdr(ASTNode* args) {
+ASTNode* op_cdr(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     
-    ASTNode* list = Eval(args, global_env);
+    ASTNode* list = Eval(args, env);
     if (list == NULL || list->type != LIST) {
         return make_symbol("nil");
     }
@@ -151,12 +151,12 @@ ASTNode* op_cdr(ASTNode* args) {
 }
 
 // cons操作 - 将元素添加到列表头部
-ASTNode* op_cons(ASTNode* args) {
+ASTNode* op_cons(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     
     // 第一个参数是新元素
     ASTNode* first_arg = args;
-    ASTNode* new_elem = Eval(first_arg, global_env);
+    ASTNode* new_elem = Eval(first_arg, env);
     if (new_elem == NULL) return make_symbol("nil");
     
     // 第二个参数是原列表
@@ -166,7 +166,7 @@ ASTNode* op_cons(ASTNode* args) {
         return create_list_node(new_elem);
     }
     
-    ASTNode* old_list = Eval(second_arg, global_env);
+    ASTNode* old_list = Eval(second_arg, env);
     
     // 如果第二个参数不是列表，当作空列表处理
     if (old_list == NULL || old_list->type != LIST) {
@@ -189,10 +189,10 @@ ASTNode* op_cons(ASTNode* args) {
 }
 
 // 判断列表是否为空
-ASTNode* op_null(ASTNode* args) {
+ASTNode* op_null(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("true");
     
-    ASTNode* list = Eval(args, global_env);
+    ASTNode* list = Eval(args, env);
     if (list == NULL || list->type != LIST) {
         return make_symbol("true");
     }
@@ -205,10 +205,10 @@ ASTNode* op_null(ASTNode* args) {
 }
 
 // 获取列表长度
-ASTNode* op_length(ASTNode* args) {
+ASTNode* op_length(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(0);
     
-    ASTNode* list = Eval(args, global_env);
+    ASTNode* list = Eval(args, env);
     if (list == NULL || list->type != LIST) {
         return make_number(0);
     }
@@ -224,7 +224,7 @@ ASTNode* op_length(ASTNode* args) {
 }
 
 // 创建列表
-ASTNode* op_list(ASTNode* args) {
+ASTNode* op_list(ASTNode* args, Env* env) {
     if (args == NULL) return create_list_node(NULL);
     
     ASTNode* first_eval = NULL;
@@ -232,7 +232,7 @@ ASTNode* op_list(ASTNode* args) {
     ASTNode* current = args;
     
     while (current != NULL) {
-        ASTNode* evaluated = Eval(current, global_env);
+        ASTNode* evaluated = Eval(current, env);
         if (evaluated == NULL) {
             current = current->next;
             continue;
@@ -262,13 +262,13 @@ ASTNode* op_list(ASTNode* args) {
 }
 
 // 相等比较（符号和数字）
-ASTNode* op_eq(ASTNode* args) {
+ASTNode* op_eq(ASTNode* args, Env* env) {
     if (args == NULL || args->next == NULL) {
         return make_symbol("false");
     }
     
-    ASTNode* first = Eval(args, global_env);
-    ASTNode* second = Eval(args->next, global_env);
+    ASTNode* first = Eval(args, env);
+    ASTNode* second = Eval(args->next, env);
     
     if (first->type == ATOM && second->type == ATOM) {
         if (strcmp(first->atom.value, second->atom.value) == 0) {
@@ -280,13 +280,13 @@ ASTNode* op_eq(ASTNode* args) {
 }
 
 // 小于比较（只用于数字）
-ASTNode* op_lt(ASTNode* args) {
+ASTNode* op_lt(ASTNode* args, Env* env) {
     if (args == NULL || args->next == NULL) {
         return make_symbol("false");
     }
     
-    ASTNode* first = Eval(args, global_env);
-    ASTNode* second = Eval(args->next, global_env);
+    ASTNode* first = Eval(args, env);
+    ASTNode* second = Eval(args->next, env);
     
     if (first->type == ATOM && first->atom.type == ATOM_NUMBER &&
         second->type == ATOM && second->atom.type == ATOM_NUMBER) {
@@ -299,13 +299,13 @@ ASTNode* op_lt(ASTNode* args) {
 }
 
 // 大于比较（只用于数字）
-ASTNode* op_gt(ASTNode* args) {
+ASTNode* op_gt(ASTNode* args, Env* env) {
     if (args == NULL || args->next == NULL) {
         return make_symbol("false");
     }
     
-    ASTNode* first = Eval(args, global_env);
-    ASTNode* second = Eval(args->next, global_env);
+    ASTNode* first = Eval(args, env);
+    ASTNode* second = Eval(args->next, env);
     
     if (first->type == ATOM && first->atom.type == ATOM_NUMBER &&
         second->type == ATOM && second->atom.type == ATOM_NUMBER) {
@@ -318,10 +318,10 @@ ASTNode* op_gt(ASTNode* args) {
 }
 
 // 字符串长度
-ASTNode* op_str_len(ASTNode* args) {
+ASTNode* op_str_len(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(0);
     
-    ASTNode* str = Eval(args, global_env);
+    ASTNode* str = Eval(args, env);
     if (str == NULL || str->type != ATOM || str->atom.type != ATOM_STRING) {
         return make_number(0);
     }
@@ -331,14 +331,14 @@ ASTNode* op_str_len(ASTNode* args) {
 }
 
 // 字符串拼接
-ASTNode* op_str_cat(ASTNode* args) {
+ASTNode* op_str_cat(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     
     // 计算总长度
     int total_len = 0;
     ASTNode* current = args;
     while (current != NULL) {
-        ASTNode* arg = Eval(current, global_env);
+        ASTNode* arg = Eval(current, env);
         if (arg != NULL && arg->type == ATOM && arg->atom.type == ATOM_STRING) {
             total_len += strlen(arg->atom.value);
         }
@@ -351,7 +351,7 @@ ASTNode* op_str_cat(ASTNode* args) {
     
     current = args;
     while (current != NULL) {
-        ASTNode* arg = Eval(current, global_env);
+        ASTNode* arg = Eval(current, env);
         if (arg != NULL && arg->type == ATOM && arg->atom.type == ATOM_STRING) {
             strcat(result, arg->atom.value);
         }
@@ -368,7 +368,7 @@ ASTNode* op_str_cat(ASTNode* args) {
 // if 条件判断
 // 语法: [if condition then-expr else-expr]
 // 示例: [if (> x 5) q"big" q"small"]
-ASTNode* op_if(ASTNode* args) {
+ASTNode* op_if(ASTNode* args, Env* env) {
     // printf("op_if called\n");
     
     // 检查参数个数（至少需要 condition 和 then-expr）
@@ -379,7 +379,7 @@ ASTNode* op_if(ASTNode* args) {
     
     // 第一个参数：条件
     ASTNode* cond_node = args;
-    ASTNode* cond = Eval(cond_node, global_env);
+    ASTNode* cond = Eval(cond_node, env);
     
     // 第二个参数：then 分支
     ASTNode* then_node = args->next;
@@ -423,6 +423,50 @@ ASTNode* op_if(ASTNode* args) {
     }
 }
 
+// def 定义变量
+ASTNode* op_def(ASTNode* args, Env* env) {
+    // [def x 10]
+    if (args == NULL || args->next == NULL) {
+        return make_symbol("error");
+    }
+    
+    // 第一个参数是变量名（必须是符号）
+    ASTNode* name_node = args;
+    if (name_node->type != ATOM || name_node->atom.type != ATOM_SYMBOL) {
+        return make_symbol("error");
+    }
+    
+    // 第二个参数是值（需要求值）
+    ASTNode* value_node = args->next;
+    ASTNode* value = Eval(value_node, env);
+    
+    // 存入环境
+    env_define(env, name_node->atom.value, value);
+    
+    return value;
+}
+
+// set 修改变量
+ASTNode* op_set(ASTNode* args, Env* env) {
+    // [set x 20]
+    if (args == NULL || args->next == NULL) {
+        return make_symbol("error");
+    }
+    
+    ASTNode* name_node = args;
+    if (name_node->type != ATOM || name_node->atom.type != ATOM_SYMBOL) {
+        return make_symbol("error");
+    }
+    
+    ASTNode* value_node = args->next;
+    ASTNode* value = Eval(value_node, env);
+    
+    // 修改环境中的变量
+    env_set(env, name_node->atom.value, value);
+    
+    return value;
+}
+
 // 注册所有内置函数
 void register_builtins(HashTable* env) {
     if (env == NULL) return;
@@ -455,6 +499,8 @@ void register_builtins(HashTable* env) {
     hash_table_put(env, "str-cat", op_str_cat);
 
     hash_table_put(env, "if", op_if);
+    hash_table_put(env, "def", op_def);
+    hash_table_put(env, "set", op_set);
     
     printf("内置函数注册完成，共注册 %d 个函数\n", env->count);
 }

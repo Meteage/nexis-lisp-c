@@ -5,8 +5,8 @@
 #include <ctype.h>
 #include "repl.h"
 #include "evaluator.h"
-#include "parser.h"
 #include "lexer.h"
+#include "parser.h"
 #include "builtins.h"
 
 // 历史记录
@@ -151,10 +151,12 @@ static void print_result(ASTNode* result) {
     
     if (use_color) {
         printf(COLOR_YELLOW);
-        print_ast_tree(result, 0, 1);
+        // print_ast_tree(result, 0, 1);
+		printf("=> %s\n", result->type == ATOM ? result->atom.value : "[LIST]");
         printf(COLOR_RESET);
     } else {
-        print_ast_tree(result, 0, 1);
+        // print_ast_tree(result, 0, 1);
+		printf("=> %s\n", result->type == ATOM ? result->atom.value : "[LIST]");
     }
 }
 
@@ -172,7 +174,7 @@ void repl_eval_line(const char* input) {
     if (input == NULL || strlen(input) == 0) return;
     
     // Tokenize
-    Token* tokens = tokenize((char*)input);
+    Token* tokens = tokenize(input);
     if (tokens == NULL) {
         print_error("Failed to tokenize");
         return;
