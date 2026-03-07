@@ -42,7 +42,7 @@ ASTNode* eval(ASTNode * ast){
     if(ast->type == ATOM){
         // 判断是否是符号
         // 整个哈希表来查找
-        printf("Evaluating atom: %s\n", ast->atom);
+        printf("evaluating atom: %s\n", ast->atom);
         // 简单符号处理
         if(strcmp(ast->atom,"nil") == 0){
             return ast; //返回nil本身
@@ -62,7 +62,7 @@ ASTNode* eval(ASTNode * ast){
     }
     else if(ast->type == LIST){
         // 嵌套调用自己
-        printf("Evaluating list...\n");
+        printf("evaluating list...\n");
         
         // 空列表返回nil
         if(ast->list == NULL) {
@@ -90,13 +90,13 @@ ASTNode* eval(ASTNode * ast){
             
             // 遍历所有参数并求和
             while (current != NULL) {
-                ASTNode* evaluated = Eval(current);
+                ASTNode* evaluated = eval(current);
                 if (evaluated != NULL && evaluated->type == ATOM) {
                     sum += atoi(evaluated->atom);
                 }
                 current = current->next;
             }
-			
+
             // 创建结果节点
             char buffer[20];
             sprintf(buffer, "%d", sum);
@@ -107,7 +107,7 @@ ASTNode* eval(ASTNode * ast){
             if (args == NULL) return create_atom_node("0");
             
             // 先求第一个参数的值
-            ASTNode* first_eval = Eval(args);
+            ASTNode* first_eval = eval(args);
             if (first_eval == NULL || first_eval->type != ATOM) {
                 return create_atom_node("0");
             }
@@ -117,7 +117,7 @@ ASTNode* eval(ASTNode * ast){
             
             // 减去剩余的参数
             while (current != NULL) {
-                ASTNode* evaluated = Eval(current);
+                ASTNode* evaluated = eval(current);
                 if (evaluated != NULL && evaluated->type == ATOM) {
                     result -= atoi(evaluated->atom);
                 }
@@ -136,7 +136,7 @@ ASTNode* eval(ASTNode * ast){
             ASTNode* current = args;
             
             while (current != NULL) {
-                ASTNode* evaluated = Eval(current);
+                ASTNode* evaluated = eval(current);
                 if (evaluated != NULL && evaluated->type == ATOM) {
                     result *= atoi(evaluated->atom);
                 }
@@ -152,7 +152,7 @@ ASTNode* eval(ASTNode * ast){
             if (args == NULL) return create_atom_node("0");
             
             // 先求第一个参数的值
-            ASTNode* first_eval = Eval(args);
+            ASTNode* first_eval = eval(args);
             if (first_eval == NULL || first_eval->type != ATOM) {
                 return create_atom_node("0");
             }
@@ -162,7 +162,7 @@ ASTNode* eval(ASTNode * ast){
             
             // 依次除以剩余的参数
             while (current != NULL) {
-                ASTNode* evaluated = Eval(current);
+                ASTNode* evaluated = eval(current);
                 if (evaluated != NULL && evaluated->type == ATOM) {
                     int divisor = atoi(evaluated->atom);
                     if (divisor != 0) {
@@ -178,7 +178,7 @@ ASTNode* eval(ASTNode * ast){
         }
         
         // 如果不是特殊形式，默认返回第一个元素的求值结果
-        return Eval(first);
+        return eval(first);
     }
     
     // 默认返回值（不应该执行到这里）
@@ -197,7 +197,7 @@ void test_eval(){
     ASTNode* ast1 = parse(token_stream1);
     printf("AST结构:\n");
     print_ast_tree(ast1, 0, 1);
-    ASTNode* result1 = Eval(ast1);
+    ASTNode* result1 = eval(ast1);
     printf("计算结果: ");
     print_ast_tree(result1, 0, 1);
     
@@ -208,7 +208,7 @@ void test_eval(){
     ASTNode* ast2 = parse(token_stream2);
     printf("AST结构:\n");
     print_ast_tree(ast2, 0, 1);
-    ASTNode* result2 = Eval(ast2);
+    ASTNode* result2 = eval(ast2);
     printf("计算结果: ");
     print_ast_tree(result2, 0, 1);
     
@@ -219,7 +219,7 @@ void test_eval(){
     ASTNode* ast3 = parse(token_stream3);
     printf("AST结构:\n");
     print_ast_tree(ast3, 0, 1);
-    ASTNode* result3 = Eval(ast3);
+    ASTNode* result3 = eval(ast3);
     printf("计算结果: ");
     print_ast_tree(result3, 0, 1);
     
