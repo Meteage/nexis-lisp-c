@@ -30,6 +30,8 @@ TokenType peek_token(const Token* head);
 // 消费/处理
 int consume_token(Token* head, TokenType type);       
 
+void free_token_stream(Token* head);
+
 // 输出/调试
 void print_token_stream(const Token* head);          
 

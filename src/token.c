@@ -37,6 +37,21 @@ int consume_token(Token *head,TokenType type){
 	return 1;
 }
 
+// 释放整个token流
+void free_token_stream(Token* head) {
+    if (head == NULL) return;
+    
+    Token* current = head;
+    while (current != NULL) {
+        Token* next = current->next;
+        if (current->data != NULL) {
+            free(current->data);
+        }
+        free(current);
+        current = next;
+    }
+}
+
 //debug 打印TokenSteam
 void print_token_stream(const Token* head){
 	Token *p = head->next;
