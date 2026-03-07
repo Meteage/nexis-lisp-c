@@ -364,6 +364,65 @@ ASTNode* op_str_cat(ASTNode* args) {
     return node;
 }
 
+
+// if 条件判断
+// 语法: [if condition then-expr else-expr]
+// 示例: [if (> x 5) q"big" q"small"]
+ASTNode* op_if(ASTNode* args) {
+    // printf("op_if called\n");
+    
+    // 检查参数个数（至少需要 condition 和 then-expr）
+    if (args == NULL) {
+        // printf("Error: if missing condition\n");
+        return make_symbol("nil");
+    }
+    
+    // 第一个参数：条件
+    ASTNode* cond_node = args;
+    ASTNode* cond = Eval(cond_node, global_env);
+    
+    // 第二个参数：then 分支
+    ASTNode* then_node = args->next;
+    
+    // 第三个参数：else 分支（可选）
+    ASTNode* else_node = args->next ? args->next->next : NULL;
+    
+    // printf("Condition evaluated to: ");
+    // if (cond) print_ast_tree(cond, 0, 1);
+    // else printf("NULL\n");
+    
+    // 判断条件是否为真
+    // 在 Lisp 中，只有 false/nil 是假，其他都是真
+    int is_true = 1;  // 默认真
+    
+    if (cond == NULL) {
+        is_true = 0;
+    } else if (cond->type == ATOM) {
+        // 检查是否是 false/nil（作为符号）
+        if (cond->atom.type == ATOM_SYMBOL) {
+            if (strcmp(cond->atom.value, "false") == 0 ||
+                strcmp(cond->atom.value, "nil") == 0) {
+                is_true = 0;
+            }
+        }
+        // 数字：0 是假？还是所有非 nil 都真？
+        // 传统 Lisp 中，只有 nil 是假，0 是真
+        // 这里我们采用传统 Lisp 规则
+    }
+    
+    // printf("Condition is %s\n", is_true ? "true" : "false");
+    
+    if (is_true) {
+        // 条件为真，执行 then 分支
+        if (then_node == NULL) return make_symbol("nil");
+        return Eval(then_node, global_env);
+    } else {
+        // 条件为假，执行 else 分支（如果有）
+        if (else_node == NULL) return make_symbol("nil");
+        return Eval(else_node, global_env);
+    }
+}
+
 // 注册所有内置函数
 void register_builtins(HashTable* env) {
     if (env == NULL) return;
@@ -394,6 +453,8 @@ void register_builtins(HashTable* env) {
     // 字符串操作
     hash_table_put(env, "str-len", op_str_len);
     hash_table_put(env, "str-cat", op_str_cat);
+
+    hash_table_put(env, "if", op_if);
     
     printf("内置函数注册完成，共注册 %d 个函数\n", env->count);
 }

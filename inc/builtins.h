@@ -34,6 +34,8 @@ ASTNode* op_gt(ASTNode* args);
 ASTNode* op_str_len(ASTNode* args);
 ASTNode* op_str_cat(ASTNode* args);
 
+ASTNode* op_if(ASTNode* args);
+
 // 注册函数
 void register_builtins(HashTable* env);
 

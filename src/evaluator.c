@@ -299,6 +299,25 @@ void test_eval() {
     printf("Result : ");
     print_ast_tree(r15, 0, 1);
     printf("Expected: [1 \"two\" 3]\n");
+
+    // ===== TEST 16: If Condition =====
+    printf("\n----- Test 16: If Condition -----\n");
+
+    Token *t16a = tokenize("[if true \"yes\" \"no\"]");
+    printf("Input 1: [if true \"yes\" \"no\"]\n");
+    ASTNode* a16a = parse(t16a);
+    ASTNode* r16a = Eval(a16a, global_env);
+    printf("Result 1: ");
+    print_ast_tree(r16a, 0, 1);
+    printf("Expected: \"yes\"\n");
+
+    Token *t16b = tokenize("[if false \"yes\" \"no\"]");
+    printf("Input 2: [if false \"yes\" \"no\"]\n");
+    ASTNode* a16b = parse(t16b);
+    ASTNode* r16b = Eval(a16b, global_env);
+    printf("Result 2: ");
+    print_ast_tree(r16b, 0, 1);
+    printf("Expected: \"no\"\n");
     
     printf("\n========== TESTING COMPLETE ==========\n");
     printf("Total tests run: 15\n");
