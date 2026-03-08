@@ -121,7 +121,7 @@ ASTNode* op_quote(ASTNode* args, Env* env) {
 ASTNode* op_car(ASTNode* args, Env* env) {
     if (args == NULL) return make_symbol("nil");
     
-    ASTNode* list = Eval(args, global_env);
+    ASTNode* list = Eval(args, env);
     if (list == NULL || list->type != NODE_LIST) {
         return make_symbol("nil");
     }
@@ -317,6 +317,88 @@ ASTNode* op_gt(ASTNode* args, Env* env) {
     return make_symbol("false");
 }
 
+
+// 多参数版本 - 小于等于
+ASTNode* op_le_multi(ASTNode* args, Env* env) {
+    if (args == NULL || args->next == NULL) {
+        return make_symbol("true");  // 单个参数总是 true
+    }
+    
+    ASTNode* prev = Eval(args, env);
+    ASTNode* current = args->next;
+    
+    while (current != NULL) {
+        ASTNode* curr_val = Eval(current, env);
+        
+        // 类型检查
+        if (prev->type != NODE_ATOM || curr_val->type != NODE_ATOM) {
+            return make_symbol("false");
+        }
+        
+        // 数字比较
+        if (prev->atom.atom_type == ATOM_NUMBER && 
+            curr_val->atom.atom_type == ATOM_NUMBER) {
+            int a = atoi(prev->atom.value);
+            int b = atoi(curr_val->atom.value);
+            if (a > b) return make_symbol("false");
+        }
+        // 字符串比较
+        else if (prev->atom.atom_type == ATOM_STRING && 
+                 curr_val->atom.atom_type == ATOM_STRING) {
+            if (strcmp(prev->atom.value, curr_val->atom.value) > 0) {
+                return make_symbol("false");
+            }
+        }
+        else {
+            return make_symbol("false");  // 类型不匹配
+        }
+        
+        prev = curr_val;
+        current = current->next;
+    }
+    
+    return make_symbol("true");
+}
+
+// 多参数版本 - 大于等于
+ASTNode* op_ge_multi(ASTNode* args, Env* env) {
+    if (args == NULL || args->next == NULL) {
+        return make_symbol("true");
+    }
+    
+    ASTNode* prev = Eval(args, env);
+    ASTNode* current = args->next;
+    
+    while (current != NULL) {
+        ASTNode* curr_val = Eval(current, env);
+        
+        if (prev->type != NODE_ATOM || curr_val->type != NODE_ATOM) {
+            return make_symbol("false");
+        }
+        
+        if (prev->atom.atom_type == ATOM_NUMBER && 
+            curr_val->atom.atom_type == ATOM_NUMBER) {
+            int a = atoi(prev->atom.value);
+            int b = atoi(curr_val->atom.value);
+            if (a < b) return make_symbol("false");
+        }
+        else if (prev->atom.atom_type == ATOM_STRING && 
+                 curr_val->atom.atom_type == ATOM_STRING) {
+            if (strcmp(prev->atom.value, curr_val->atom.value) < 0) {
+                return make_symbol("false");
+            }
+        }
+        else {
+            return make_symbol("false");
+        }
+        
+        prev = curr_val;
+        current = current->next;
+    }
+    
+    return make_symbol("true");
+}
+
 // 字符串长度
 ASTNode* op_str_len(ASTNode* args, Env* env) {
     if (args == NULL) return make_number(0);
@@ -415,33 +497,30 @@ ASTNode* op_if(ASTNode* args, Env* env) {
     if (is_true) {
         // 条件为真，执行 then 分支
         if (then_node == NULL) return make_symbol("nil");
-        return Eval(then_node, global_env);
+        return Eval(then_node, env);
     } else {
         // 条件为假，执行 else 分支（如果有）
         if (else_node == NULL) return make_symbol("nil");
-        return Eval(else_node, global_env);
+        return Eval(else_node, env);
     }
 }
 
 // def 定义变量
 ASTNode* op_def(ASTNode* args, Env* env) {
-    // [def x 10]
     if (args == NULL || args->next == NULL) {
         return make_symbol("error");
     }
     
-    // 第一个参数是变量名（必须是符号）
     ASTNode* name_node = args;
     if (name_node->type != NODE_ATOM || name_node->atom.atom_type != ATOM_SYMBOL) {
         return make_symbol("error");
     }
     
-    // 第二个参数是值（需要求值）
     ASTNode* value_node = args->next;
     ASTNode* value = Eval(value_node, env);
     
-    // 存入环境
-    env_define(env, name_node->atom.value, value);
+    // 存入变量表
+    env_define_var(env, name_node->atom.value, value);
     
     return value;
 }
@@ -462,7 +541,7 @@ ASTNode* op_set(ASTNode* args, Env* env) {
     ASTNode* value = Eval(value_node, env);
     
     // 修改环境中的变量
-    env_set(env, name_node->atom.value, value);
+    env_set_var(env, name_node->atom.value, value);
     
     return value;
 }
@@ -479,10 +558,8 @@ ASTNode* op_set(ASTNode* args, Env* env) {
  * @return 函数体求值结果
  */
 ASTNode* op_let(ASTNode* args, Env* env) {
-    // ========== 调试开关 ==========
-    #define LET_DEBUG 1  // 1 开启调试输出，0 关闭
     
-    #if LET_DEBUG
+    #if DEBUG_LET
     printf("\n=== op_let start ===\n");
     printf("Args: ");
     print_ast_tree(args, 0, 1);
@@ -491,7 +568,7 @@ ASTNode* op_let(ASTNode* args, Env* env) {
     // ---------- 参数检查 ----------
     // let 需要至少两个参数：绑定列表和函数体
     if (args == NULL || args->next == NULL) {
-        #if LET_DEBUG
+        #if DEBUG_LET
         printf("Error: let requires bindings and body\n");
         #endif
         return make_symbol("error");
@@ -504,7 +581,7 @@ ASTNode* op_let(ASTNode* args, Env* env) {
     // 第二个参数：函数体，格式如 [* x y]
     ASTNode* body = args->next;
     
-    #if LET_DEBUG
+    #if DEBUG_LET
     printf("Bindings: ");
     print_ast_tree(bindings, 0, 1);
     printf("Body: ");
@@ -515,7 +592,7 @@ ASTNode* op_let(ASTNode* args, Env* env) {
     // 创建词法作用域，外层是当前环境
     Env* new_env = env_create(env);
     
-    #if LET_DEBUG
+    #if DEBUG_LET
     printf("Old environment: %p\n", (void*)env);
     printf("New environment created: %p\n", (void*)new_env);
     #endif
@@ -529,7 +606,7 @@ ASTNode* op_let(ASTNode* args, Env* env) {
         ASTNode* binding = current->list;
         
         if (binding && binding->next) {
-            #if LET_DEBUG
+            #if DEBUG_LET
             printf("\nProcessing binding: ");
             print_ast_tree(binding, 0, 1);
             #endif
@@ -540,7 +617,7 @@ ASTNode* op_let(ASTNode* args, Env* env) {
             // 值表达式
             ASTNode* val_expr = binding->next;
             
-            #if LET_DEBUG
+            #if DEBUG_LET
             printf("  Variable name: %s\n", name->atom.value);
             printf("  Value expression: ");
             print_ast_tree(val_expr, 0, 1);
@@ -550,17 +627,17 @@ ASTNode* op_let(ASTNode* args, Env* env) {
             // 注意：使用 env 而不是 new_env，这是并行绑定语义
             ASTNode* val = Eval(val_expr, env);
             
-            #if LET_DEBUG
+            #if DEBUG_LET
             printf("  Evaluated value: ");
             print_ast_tree(val, 0, 1);
             #endif
             
             // 在新环境中定义变量
-            env_define(new_env, name->atom.value, val);
+            env_define_var(new_env, name->atom.value, val);
             
-            #if LET_DEBUG
+            #if DEBUG_LET
             // 验证变量是否成功定义
-            ASTNode* check = env_lookup(new_env, name->atom.value);
+            ASTNode* check = env_lookup_var(new_env, name->atom.value);
             printf("  Verification: ");
             if (check) {
                 print_ast_tree(check, 0, 1);
@@ -573,33 +650,24 @@ ASTNode* op_let(ASTNode* args, Env* env) {
         current = current->next;
     }
     
-    #if LET_DEBUG
+    #if DEBUG_LET
     printf("\nAll bindings processed, evaluating body in new environment\n");
     #endif
     
     // ---------- 在新环境中求值函数体 ----------
     ASTNode* result = Eval(body, new_env);
-    
-    #if LET_DEBUG
-    printf("Body evaluation result: ");
-    print_ast_tree(result, 0, 1);
-    #endif
-    
-    // ---------- 可选：释放临时环境 ----------
-    // 如果不再需要临时环境，可以释放
-    // env_free(new_env);
-    
-    #if LET_DEBUG
-    printf("=== op_let end ===\n\n");
-    #endif
+
+    env_free(new_env);  // 释放新环境
     
     return result;
     
     #undef LET_DEBUG  // 清理宏定义
 }
-#define LAMBDA_DEBUG 1  // 1 开启调试输出，0 关闭
+
+
+
 ASTNode* op_lambda(ASTNode* args, Env* env) {
-    #ifdef LAMBDA_DEBUG
+    #if DEBUG_LAMBDA
     printf("\n=== op_lambda start ===\n");
     #endif
     
@@ -610,7 +678,7 @@ ASTNode* op_lambda(ASTNode* args, Env* env) {
     ASTNode* params = args;
     ASTNode* body = args->next;
     
-    #ifdef LAMBDA_DEBUG
+    #if DEBUG_LAMBDA
     printf("Params: ");
     print_ast_tree(params, 0, 1);
     printf("Body: ");
@@ -620,7 +688,7 @@ ASTNode* op_lambda(ASTNode* args, Env* env) {
     // 创建函数节点（捕获当前环境）
     ASTNode* func = create_function_node(params, body, env);
     
-    #ifdef LAMBDA_DEBUG
+    #if DEBUG_LAMBDA
     printf("Function created at %p\n", (void*)func);
     printf("=== op_lambda end ===\n");
     #endif
@@ -628,42 +696,44 @@ ASTNode* op_lambda(ASTNode* args, Env* env) {
     return func;
 }
 
-// 注册所有内置函数
-void register_builtins(HashTable* env) {
+void register_builtins(Env* env) {
     if (env == NULL) return;
     
     // 算术运算
-    hash_table_put(env, "+", op_add);
-    hash_table_put(env, "-", op_sub);
-    hash_table_put(env, "*", op_mul);
-    hash_table_put(env, "/", op_div);
+    env_define_func(env, "+", op_add);
+    env_define_func(env, "-", op_sub);
+    env_define_func(env, "*", op_mul);
+    env_define_func(env, "/", op_div);
     
     // 特殊形式
-    hash_table_put(env, "quote", op_quote);
-    hash_table_put(env, "'", op_quote);
+    env_define_func(env, "quote", op_quote);
+    env_define_func(env, "'", op_quote);
     
     // 列表操作
-    hash_table_put(env, "car", op_car);
-    hash_table_put(env, "cdr", op_cdr);
-    hash_table_put(env, "cons", op_cons);
-    hash_table_put(env, "null?", op_null);
-    hash_table_put(env, "length", op_length);
-    hash_table_put(env, "list", op_list);
+    env_define_func(env, "car", op_car);
+    env_define_func(env, "cdr", op_cdr);
+    env_define_func(env, "cons", op_cons);
+    env_define_func(env, "null?", op_null);
+    env_define_func(env, "length", op_length);
+    env_define_func(env, "list", op_list);
     
     // 比较操作
-    hash_table_put(env, "eq?", op_eq);
-    hash_table_put(env, "<", op_lt);
-    hash_table_put(env, ">", op_gt);
+    env_define_func(env, "eq?", op_eq);
+    env_define_func(env, "<", op_lt);
+    env_define_func(env, ">", op_gt);
+    env_define_func(env, "<=", op_le_multi);
+    env_define_func(env, ">=", op_ge_multi);
     
     // 字符串操作
-    hash_table_put(env, "str-len", op_str_len);
-    hash_table_put(env, "str-cat", op_str_cat);
+    env_define_func(env, "str-len", op_str_len);
+    env_define_func(env, "str-cat", op_str_cat);
 
-    hash_table_put(env, "if", op_if);
-    hash_table_put(env, "def", op_def);
-    hash_table_put(env, "set", op_set);
-    hash_table_put(env, "let", op_let);
-    hash_table_put(env, "lambda", op_lambda);
+    // 特殊形式
+    env_define_func(env, "if", op_if);
+    env_define_func(env, "def", op_def);
+    env_define_func(env, "set", op_set);
+    env_define_func(env, "let", op_let);
+    env_define_func(env, "lambda", op_lambda);
     
-    printf("内置函数注册完成，共注册 %d 个函数\n", env->count);
+    printf("Built-in functions registered: %d\n", env->functions->count);
 }

@@ -14,7 +14,7 @@ void test_eval() {
     
     // 初始化环境
     init_global_env();
-    printf("Global environment initialized with %d built-in functions\n", global_env->bindings->count);
+    printf("Global environment initialized with %d built-in functions\n", global_env->functions->count);
     
     // ===== TEST 1: Basic Arithmetic =====
     printf("\n----- Test 1: Basic Arithmetic -----\n");

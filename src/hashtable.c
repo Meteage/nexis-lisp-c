@@ -30,7 +30,11 @@ unsigned int hash_string(const char* str, int table_size) {
 // 插入键值对
 void hash_table_put(HashTable* table, const char* key, LispFunc value) {
     if (table == NULL || key == NULL) return;
-    
+    // 调试输出
+    #if DEBUG_HASH
+    printf("hash_table_put: table=%p, key=%s, value=%p\n", 
+           (void*)table, key, (void*)value);
+    #endif
     // 计算哈希值
     unsigned int index = hash_string(key, table->size);
     
@@ -60,7 +64,9 @@ void hash_table_put(HashTable* table, const char* key, LispFunc value) {
 // 查找
 LispFunc hash_table_get(HashTable* table, const char* key) {
     if (table == NULL || key == NULL) return NULL;
-    
+    #if DEBUG_HASH
+    printf("hash_table_get: table=%p, key=%s\n", (void*)table, key);
+    #endif
     unsigned int index = hash_string(key, table->size);
     
     HashNode* current = table->buckets[index];

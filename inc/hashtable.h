@@ -4,6 +4,8 @@
 
 #include "astnode.h"
 
+#define DEBUG_HASH 0  // 定义调试宏
+
 // 前向声明 Env 结构
 typedef struct Env Env;
 

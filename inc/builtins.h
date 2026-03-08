@@ -6,6 +6,9 @@
 #include "astnode.h"
 #include "env.h"
 
+#define DEBUG_LET 0  // 定义调试宏
+#define DEBUG_LAMBDA 0  // 定义调试宏
+
 // 所有内置函数现在都接受 (ASTNode*, Env*)
 ASTNode* op_add(ASTNode* args, Env* env);
 ASTNode* op_sub(ASTNode* args, Env* env);
@@ -31,6 +34,6 @@ ASTNode* op_lambda(ASTNode* args, Env* env);
 
 
 // 注册函数
-void register_builtins(HashTable* env);
+void register_builtins(Env* env);
 
 #endif

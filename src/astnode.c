@@ -30,15 +30,20 @@ ASTNode* create_list_node(ASTNode* children) {
 }
 
 // 创建函数节点
+// astnode.c
 ASTNode* create_function_node(ASTNode* params, ASTNode* body, Env* env) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (!node) return NULL;
     
     node->type = NODE_FUNCTION;
     node->next = NULL;
-    node->func.params = params;
-    node->func.body = body;
-    node->func.env = env;  // 捕获环境
+    
+    // 深拷贝参数列表（因为输入的 ast 会被释放）
+    node->func.params = copy_ast_node(params);
+    // 深拷贝函数体（因为输入的 ast 会被释放）
+    node->func.body = copy_ast_node(body);
+    // 环境是引用，不需要拷贝
+    node->func.env = env;
     
     return node;
 }
@@ -82,6 +87,7 @@ ASTNode* append_sibling_to_list(ASTNode* head, ASTNode* node) {
 }
 
 // 复制 ASTNode（深拷贝）
+// astnode.c
 ASTNode* copy_ast_node(ASTNode* node) {
     if (node == NULL) return NULL;
     
@@ -89,7 +95,8 @@ ASTNode* copy_ast_node(ASTNode* node) {
         ASTNode* copy = create_atom_node(node->atom.value);
         set_atom_type(copy, node->atom.atom_type);
         return copy;
-    } else if (node->type == NODE_LIST) {
+    } 
+    else if (node->type == NODE_LIST) {
         // 复制列表（需要递归复制每个元素）
         ASTNode* copy_list = NULL;
         ASTNode* last = NULL;
@@ -109,10 +116,24 @@ ASTNode* copy_ast_node(ASTNode* node) {
         
         return create_list_node(copy_list);
     }
+    else if (node->type == NODE_FUNCTION) {
+       // 函数节点已经在 create_function_node 中复制过了
+        // 这里只需要浅拷贝（因为内容是独立的）
+        ASTNode* copy = (ASTNode*)malloc(sizeof(ASTNode));
+        if (!copy) return NULL;
+        
+        copy->type = NODE_FUNCTION;
+        copy->next = NULL;
+        copy->func.params = node->func.params;  // 已经是副本，可以共享
+        copy->func.body = node->func.body;      // 已经是副本，可以共享
+        copy->func.env = node->func.env;
+        
+        return copy;
+    }
     
+    printf("copy_ast_node: unknown node type %d\n", node->type);
     return NULL;
 }
-
 
 // 释放AST内存
 void free_ast(ASTNode* node) {
@@ -197,6 +218,15 @@ void print_ast_tree(ASTNode* node, int depth, int is_last) {
             }
             printf("(empty list)\n");
         }
+    }else if(node->type == NODE_FUNCTION){
+        printf("FUNCTION (closure)\n");
+        // 可以选择打印更多信息
+        for (int i = 0; i < depth + 1; i++) printf("  ");
+        printf("params: ");
+        print_ast_tree(node->func.params, 0, 1);
+        for (int i = 0; i < depth + 1; i++) printf("  ");
+        printf("body: ");
+        print_ast_tree(node->func.body, 0, 1);
     }
 }
 

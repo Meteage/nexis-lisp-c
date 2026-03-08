@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     
     // 释放环境
     if (global_env != NULL) {
-        free_hash_table(global_env->bindings);
+        free_hash_table(global_env->functions);
         global_env = NULL;
     }
     

@@ -5,28 +5,35 @@
 #include "astnode.h"
 #include "hashtable.h"
 
-#define DEBUG 1
+#define DEBUG_ENV 0  // 定义调试宏
 
 // 环境结构（支持嵌套作用域）
 typedef struct Env {
-    HashTable* bindings;    // 变量绑定表
-    struct Env* outer;       // 外层环境（用于闭包）
+    HashTable* functions;   // 存内置函数 (LispFunc)
+    HashTable* variables;   // 存变量 (ASTNode*)
+    struct Env* outer;      // 外层环境
 } Env;
 
 // 创建新环境
 Env* env_create(Env* outer);
 
-// 在环境中定义变量
-void env_define(Env* env, const char* name, ASTNode* value);
+// 定义变量（存入 variables）
+void env_define_var(Env* env, const char* name, ASTNode* value);
+
+// 定义函数（存入 functions）
+void env_define_func(Env* env, const char* name, LispFunc func);
 
 // 查找变量
-ASTNode* env_lookup(Env* env, const char* name);
+ASTNode* env_lookup_var(Env* env, const char* name);
+
+// 查找函数
+LispFunc env_lookup_func(Env* env, const char* name);
 
 // 修改变量
-void env_set(Env* env, const char* name, ASTNode* value);
+void env_set_var(Env* env, const char* name, ASTNode* value);
 
 // 检查变量是否存在
-int env_exists(Env* env, const char* name);
+int env_var_exists(Env* env, const char* name);
 
 // 打印环境（调试用）
 void env_print(Env* env);
