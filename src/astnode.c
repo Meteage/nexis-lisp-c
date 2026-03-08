@@ -3,32 +3,50 @@
 #include <string.h>
 #include "astnode.h"
 
-// Helper function: Create atom node 
+// 创建原子节点
 ASTNode* create_atom_node(const char* value) {
     ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
     if (!node) return NULL;
     
-    node->type = ATOM;
+    node->type = NODE_ATOM;
     node->next = NULL;
-    
-    // 复制字符串到 atom.value
     node->atom.value = (char*)malloc(strlen(value) + 1);
-    if (!node->atom.value) {
-        free(node);
-        return NULL;
-    }
     strcpy(node->atom.value, value);
+    node->atom.atom_type = ATOM_SYMBOL;  // 默认符号类型
     
-    // 默认类型设为 symbol，由调用者显式设置
-    node->atom.type = ATOM_SYMBOL;
+    return node;
+}
+
+// 创建列表节点
+ASTNode* create_list_node(ASTNode* children) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (!node) return NULL;
+    
+    node->type = NODE_LIST;
+    node->next = NULL;
+    node->list = children;
+    
+    return node;
+}
+
+// 创建函数节点
+ASTNode* create_function_node(ASTNode* params, ASTNode* body, Env* env) {
+    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
+    if (!node) return NULL;
+    
+    node->type = NODE_FUNCTION;
+    node->next = NULL;
+    node->func.params = params;
+    node->func.body = body;
+    node->func.env = env;  // 捕获环境
     
     return node;
 }
 
 // 新增：设置原子类型的函数
 void set_atom_type(ASTNode* node, AtomType type) {
-    if (node && node->type == ATOM) {
-        node->atom.type = type;
+    if (node && node->type == NODE_ATOM) {
+        node->atom.atom_type = type;
     }
 }
 
@@ -36,22 +54,12 @@ void set_atom_type(ASTNode* node, AtomType type) {
 ASTNode* create_typed_atom(const char* value, AtomType type) {
     ASTNode* node = create_atom_node(value);
     if (node) {
-        node->atom.type = type;
+        node->atom.atom_type = type;
     }
     return node;
 }
 
-// Helper function: Create list node
-ASTNode* create_list_node(ASTNode* children) {
-    ASTNode* node = (ASTNode*)malloc(sizeof(ASTNode));
-    if (!node) return NULL;
-    
-    node->type = LIST;
-    node->next = NULL;
-    node->list = children;
 
-    return node;
-}
 
 // 添加同级节点（返回新的尾节点）
 ASTNode* append_sibling(ASTNode* tail, ASTNode* node) {
@@ -77,11 +85,11 @@ ASTNode* append_sibling_to_list(ASTNode* head, ASTNode* node) {
 ASTNode* copy_ast_node(ASTNode* node) {
     if (node == NULL) return NULL;
     
-    if (node->type == ATOM) {
+    if (node->type == NODE_ATOM) {
         ASTNode* copy = create_atom_node(node->atom.value);
-        set_atom_type(copy, node->atom.type);
+        set_atom_type(copy, node->atom.atom_type);
         return copy;
-    } else if (node->type == LIST) {
+    } else if (node->type == NODE_LIST) {
         // 复制列表（需要递归复制每个元素）
         ASTNode* copy_list = NULL;
         ASTNode* last = NULL;
@@ -106,6 +114,7 @@ ASTNode* copy_ast_node(ASTNode* node) {
 }
 
 
+// 释放AST内存
 void free_ast(ASTNode* node) {
     if (!node) return;
     
@@ -114,18 +123,26 @@ void free_ast(ASTNode* node) {
         free_ast(node->next);
     }
     
-    if (node->type == ATOM) {
-        // 释放 atom.value
-        if (node->atom.value) {
-            free(node->atom.value);
-        }
-    } 
-    else if (node->type == LIST) {
-        // 递归释放子节点
-        if (node->list) {
-            free_ast(node->list);
-        }
+    // 根据类型释放
+    switch (node->type) {
+        case NODE_ATOM:
+            if (node->atom.value) {
+                free(node->atom.value);
+            }
+            break;
+            
+        case NODE_LIST:
+            if (node->list) {
+                free_ast(node->list);
+            }
+            break;
+            
+        case NODE_FUNCTION:
+            // 函数节点：参数和body是引用，不释放
+            // 环境由环境系统管理
+            break;
     }
+    
     free(node);
 }
 
@@ -143,16 +160,16 @@ void print_ast_tree(ASTNode* node, int depth, int is_last) {
         printf(is_last ? "\\-" : "|-");
     }
     
-    if (node->type == ATOM) {
+    if (node->type == NODE_ATOM) {
         printf("> ATOM: \"%s\"", node->atom.value);
         // 显示类型
-        switch (node->atom.type) {
+        switch (node->atom.atom_type) {
             case ATOM_NUMBER: printf(" (number)"); break;
             case ATOM_STRING: printf(" (string)"); break;
             case ATOM_SYMBOL: printf(" (symbol)"); break;
         }
         printf("\n");
-    } else if (node->type == LIST) {
+    } else if (node->type == NODE_LIST) {
         printf("> LIST\n");
         if (node->list) {
             ASTNode* child = node->list;
@@ -188,7 +205,7 @@ void print_siblings(ASTNode* head) {
     printf("Sibling chain: ");
     ASTNode* current = head;
     while (current) {
-        if (current->type == ATOM) {
+        if (current->type == NODE_ATOM) {
             printf("\"%s\"", current->atom.value);
         } else {
             printf("[LIST]");

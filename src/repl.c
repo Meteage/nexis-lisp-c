@@ -151,12 +151,12 @@ static void print_result(ASTNode* result) {
     
     if (use_color) {
         printf(COLOR_YELLOW);
-        // print_ast_tree(result, 0, 1);
-		printf("=> %s\n", result->type == ATOM ? result->atom.value : "[LIST]");
+        print_ast_tree(result, 0, 1);
+		printf("=> %s\n", result->type == NODE_ATOM ? result->atom.value : "[LIST]");
         printf(COLOR_RESET);
     } else {
-        // print_ast_tree(result, 0, 1);
-		printf("=> %s\n", result->type == ATOM ? result->atom.value : "[LIST]");
+        print_ast_tree(result, 0, 1);
+		printf("=> %s\n", result->type == NODE_ATOM ? result->atom.value : "[LIST]");
     }
 }
 

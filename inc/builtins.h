@@ -26,6 +26,9 @@ ASTNode* op_str_cat(ASTNode* args, Env* env);
 ASTNode* op_if(ASTNode* args, Env* env);
 ASTNode* op_def(ASTNode* args, Env* env);
 ASTNode* op_set(ASTNode* args, Env* env);
+ASTNode* op_let(ASTNode* args, Env* env);
+ASTNode* op_lambda(ASTNode* args, Env* env);
+
 
 // 注册函数
 void register_builtins(HashTable* env);
