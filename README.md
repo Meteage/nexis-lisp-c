@@ -1,7 +1,5 @@
 Nexis Lisp
 
-https://img.shields.io/badge/License-MIT-yellow.svg https://img.shields.io/badge/C-99-blue.svg https://img.shields.io/badge/CMake-3.10+-brightgreen.svg
-
 Nexis Lisp 是一个轻量级、可嵌入的 Lisp 方言解释器，完全由 C 语言实现。它提供了现代 Lisp 的核心特性，包括词法作用域、闭包、递归函数等，同时保持代码简洁和易于理解。
 
 ✨ 特性
