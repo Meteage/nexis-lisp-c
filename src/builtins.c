@@ -734,6 +734,6 @@ void register_builtins(Env* env) {
     env_define_func(env, "set", op_set);
     env_define_func(env, "let", op_let);
     env_define_func(env, "lambda", op_lambda);
-    
+    env_define_func(env, "fn", op_lambda);
     printf("Built-in functions registered: %d\n", env->functions->count);
 }
